@@ -7,6 +7,19 @@ export const is_android = () => {
     return false
   }
 }
+export function setCookie  (name,value)  {
+  var Days = 30;
+  var exp = new Date();
+  exp.setTime(exp.getTime() + Days*24*60*60*30);
+  document.cookie = name + "="+ escape (value) + ";expires=" + exp.toGMTString();
+}
+export function getCookie (name)  {
+  var arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
+    if (arr = document.cookie.match(reg))
+        return (arr[2]);
+    else
+        return null;
+}
 // 判断当前是否是iphone手机
 export const is_iphone = () => {
   var ua = navigator.userAgent.toLocaleLowerCase()
@@ -28,7 +41,7 @@ export const getQueryString = name => {
 }
 
 // 时间转换
-export const formatTimeAmt = (fmt, msg) => {
+export function formatTimeAmt  (fmt, msg)  {
   Date.prototype.format = function(fmt) {
     var o = {
       'M+': this.getMonth() + 1,

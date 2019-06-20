@@ -277,7 +277,7 @@ export default {
   },
   mounted() {
     this.idty = localStorage.getItem("idty");
-    this.init();
+    // this.init();
     (this.page1 = 0),
       (this.page2 = 0),
       (this.dataList1 = []),
@@ -295,12 +295,48 @@ export default {
     toSearch(type) {
       this.$router.push({
         path: "/recordSearch",
-        query:{
-          state:type
+        query: {
+          state: type
         }
       });
     },
     noData() {},
+    //   getDate (offset, fn) {
+    //   $http.get({
+    //     url: 'http://gl.luoyangjinmei.com/webapi/ApiTest.ashx?method=getdeliverylistpage',
+    //     data: {
+    //       'offset': offset,
+    //       'limit': 5
+    //     },
+    //     success: data => {
+    //       if (data.length < 5) {    //每次请求数据是10条，如果数据不够10条，就是没数据了 让页数=0；
+    //         this.offset = 0
+    //         fn(true)
+    //         return
+    //       } else {
+    //         if (fn) fn()
+    //       }
+    //       if (offset === 1) {
+    //         this.items = data   //如果是想下滑动，刷新数据 就让items等于最新数据
+    //       } else {
+    //         this.items = this.items.concat(data) //否则就把数据拼接
+    //       }
+    //     },
+    //     error: err => {
+    //       console.log(err, '----------err')
+    //       // let message = err.response
+    //       // toastr.toastrUtil(message.data[0].errorMessage)
+    //     }
+    //   })
+    // },
+    // infinite (done) {
+    //   this.offset++    //每当向上滑动的时候就让页数加1
+    //   this.getDate(this.offset, done)
+    // },
+    // refresh (done) { //这是向下滑动的时候请求最新的数据
+    //   this.offset = 0
+    //   this.getDate(1, done)
+    // },
     refresh(done) {
       setTimeout(() => {
         if (this.idty == "user") {
@@ -360,8 +396,8 @@ export default {
         }
         setTimeout(() => {
           done();
-        });
-      }, 1500);
+        }, 1100);
+      }, 1000);
     },
     getTop(y) {
       //滚动条位置
@@ -379,7 +415,7 @@ export default {
       this.$fetch(Resource.getpickuplistpage, {
         phoneNo: 18317529845,
         courierId: "2486c4c5-b224-4a3e-b987-2f2578e03643", //用户编号
-        cabinetId: 1012, //柜子编号
+        cabinetId: localStorage.getItem("erCode"), //柜子编号
         state: type, //1表示未取，2表示已取
         page: this.page1 == 0 ? 1 : this.page1
       }).then(res => {
@@ -414,7 +450,7 @@ export default {
     UnGetList(type) {
       this.$fetch(Resource.getdeliverylistpage, {
         courierId: "2486c4c5-b224-4a3e-b987-2f2578e03643", //快递员编号
-        cabinetId: 1012, //柜子编号
+        cabinetId: localStorage.getItem("erCode"), //柜子编号
         state: type, //1表示未取，2表示已取
         page: this.page2 == 0 ? 1 : this.page2
       }).then(res => {
@@ -488,30 +524,30 @@ export default {
         courierId: "2486c4c5-b224-4a3e-b987-2f2578e03643",
         page: 0,
         state: 1,
-        cabinetId: 1012,
+        cabinetId: localStorage.getItem("erCode"),
         filtertype: i,
         inputpara: ""
       })
         .then(res => {
           this.dataList1 = JSON.parse(res.lists);
           this.dataList1.forEach(v => {
-          v.inDate =
-            v.inDate &&
-            this.$formatTimeAmt(
-              parseInt(v.inDate.replace(/\D/gim, "")),
-              "yyyy-MM-dd hh:mm:ss"
-            );
-          v.outDate =
+            v.inDate =
+              v.inDate &&
+              this.$formatTimeAmt(
+                parseInt(v.inDate.replace(/\D/gim, "")),
+                "yyyy-MM-dd hh:mm:ss"
+              );
+            v.outDate =
               v.outDate &&
               this.$formatTimeAmt(
                 parseInt(v.outDate.replace(/\D/gim, "")),
                 "yyyy-MM-dd hh:mm:ss"
               );
-        });
-            for (let i in this.dataList1) {
-              this.$set(this.dataList1[i], "isOpen", "展开");
-            }
-            console.log(this.dataList1)
+          });
+          for (let i in this.dataList1) {
+            this.$set(this.dataList1[i], "isOpen", "展开");
+          }
+          console.log(this.dataList1);
         })
         .catch(err => {});
     },

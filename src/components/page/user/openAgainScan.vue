@@ -84,7 +84,7 @@ export default {
       open(){
       this.show = true;
       this.$fetch(Resource.pickupsuccess,{
-                    cabinetId: 1012,
+                    cabinetId: localStorage.getItem('erCode'),
                     pickcode: 855895
                     }).then(res=>{
                       setTimeout(() => {

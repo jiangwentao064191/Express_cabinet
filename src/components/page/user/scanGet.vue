@@ -98,27 +98,159 @@ export default {
   },
   methods: {
     open() {
-      this.show = true;
-      this.$fetch(Resource.pickupsuccess, {
-        cabinetId: 1012,
-        pickcode: 855895
-      })
-        .then(res => {
-          if (res.status) {
-            setTimeout(() => {
-              this.show = false;
-              this.$router.push({
-                path: "/openAgainScan"
-              });
-            }, 1000);
-          } else {
-            setTimeout(() => {
-              this.show = false;
-              tooltipbox.show(res.msg);
-            }, 1000);
-          }
-        })
-        .catch(err => {});
+      if (!localStorage.getItem('erCode')) {
+        let _this = this
+      $.ajax({
+             type: "GET",
+             url: "http://wx.luoyangjinmei.com/getWxinter1.ashx",
+            //  url: "http://vue2.jianku.com.cn/000.php",
+             // data: {username:$("#username").val(), content:$("#content").val()},
+             dataType: "json",
+						 data:{url:location.href.split('#')[0] },
+             success: function(data){
+                         console.log(data);
+						_this.wx.config({
+									debug: false,
+									appId: "wxd093959d6ee082a9",
+									timestamp: data.timestamp,
+									nonceStr: data.noncestr,
+									signature: data.signature,
+									jsApiList: [
+									  // 所有要调用的 API 都要加到这个列表中
+										'checkJsApi',
+
+										'onMenuShareTimeline',
+
+										'onMenuShareAppMessage',
+
+										'onMenuShareQQ',
+
+										'onMenuShareWeibo',
+
+										'hideMenuItems',
+
+										'showMenuItems',
+
+										'hideAllNonBaseMenuItem',
+
+										'showAllNonBaseMenuItem',
+
+										'translateVoice',
+
+										'startRecord',
+
+										'stopRecord',
+
+										'onRecordEnd',
+
+										'playVoice',
+
+										'pauseVoice',
+
+										'stopVoice',
+
+										'uploadVoice',
+
+										'downloadVoice',
+
+										'chooseImage',
+
+										'previewImage',
+
+										'uploadImage',
+
+										'downloadImage',
+
+										'getNetworkType',
+
+										'openLocation',
+
+										'getLocation',
+
+										'hideOptionMenu',
+
+										'showOptionMenu',
+
+										'closeWindow',
+
+										'scanQRCode',
+
+										'chooseWXPay',
+
+										'openProductSpecificView',
+
+										'addCard',
+
+										'chooseCard',
+
+										'openCard'
+									]
+                  });
+                   _this.wx.error(function(res) {
+                 alert("出错了：" + res.errMsg);//这个地方的好处就是wx.config配置错误，会弹出窗口哪里错误，然后根据微信文档查询即可。
+             });
+                  _this.wx.ready(function(){
+                   _this.wx.checkJsApi({
+                      jsApiList : ['scanQRCode'],
+                      success : function(res) {
+                      }
+                 });
+             });
+             //点击按钮扫描二维码
+                 _this.wx.scanQRCode({
+                     needResult : 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+                     scanType : [ "qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+                     success : function(res) {
+                       localStorage.setItem('erCode',res.ercode)
+                       _this.show = true;
+          _this.$fetch(Resource.pickupsuccess, {
+            cabinetId: localStorage.getItem('erCode'),
+            pickcode: 855895
+          })
+            .then(res => {
+              if (res.status) {
+                setTimeout(() => {
+                  _this.show = false;
+                  _this.$router.push({
+                    path: "/openAgainScan"
+                  });
+                }, 1000);
+              } else {
+                setTimeout(() => {
+                  _this.show = false;
+                  tooltipbox.show(res.msg);
+                }, 1000);
+              }
+            })
+            .catch(err => {});
+                    	 var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+                     },
+                 });
+                      }
+         });
+        } else {
+          this.show = true;
+          this.$fetch(Resource.pickupsuccess, {
+            cabinetId: localStorage.getItem('erCode'),
+            pickcode: 855895
+          })
+            .then(res => {
+              if (res.status) {
+                setTimeout(() => {
+                  this.show = false;
+                  this.$router.push({
+                    path: "/openAgainScan"
+                  });
+                }, 1000);
+              } else {
+                setTimeout(() => {
+                  this.show = false;
+                  tooltipbox.show(res.msg);
+                }, 1000);
+              }
+            })
+            .catch(err => {});
+        }
     }
   },
   mounted() {

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <vue-element-loading :active="show"  text="开箱中" element-loading-spinner="el-icon-loading"/>
+    <vue-element-loading :active="show" text="开箱中" element-loading-spinner="el-icon-loading"/>
     <div class="sb_chooseBox none">
       <div class="sb_header">
         <!-- <div class="sb_headerbox">快递柜样机</div> -->
@@ -37,7 +37,7 @@
       <!-- <div class="sb_succesBtn">
         <div class="sb_succesBtnL" @click="goHome">返回首页</div>
         <div class="sb_succesBtnR" @click="toLogo">继续投递</div>
-      </div> -->
+      </div>-->
     </div>
     <div id="HBox">
       <div class="mpTc_title">如何存件</div>
@@ -72,6 +72,7 @@ import "../../assets/js/jquery.hDialog.js";
 import { Resource } from "../../utils/api.js";
 import tooltipbox from "../../assets/js/tooltipbox.js";
 import VueElementLoading from "vue-element-loading";
+import { getCookie } from "../../utils/until";
 export default {
   components: {
     VueElementLoading
@@ -87,7 +88,7 @@ export default {
     };
   },
   mounted() {
-   document.title = '快速投递'
+    document.title = "快速投递";
     this.init();
     $.dialogDiy(
       "confirm",
@@ -101,11 +102,128 @@ export default {
   },
   methods: {
     init() {
-      this.$fetch(Resource.getboxtypeinfos, {
-        cabinetId: 1012
-      }).then(res => {
-        this.boxList = res;
-      });
+      if (!localStorage.getItem("erCode")) {
+        let _this = this;
+        $.ajax({
+          type: "GET",
+          url: "http://wx.luoyangjinmei.com/getWxinter1.ashx",
+          //  url: "http://vue2.jianku.com.cn/000.php",
+          // data: {username:$("#username").val(), content:$("#content").val()},
+          dataType: "json",
+          data: { url: location.href.split("#")[0] },
+          success: function(data) {
+            console.log(data);
+            _this.wx.config({
+              debug: false,
+              appId: "wxd093959d6ee082a9",
+              timestamp: data.timestamp,
+              nonceStr: data.noncestr,
+              signature: data.signature,
+              jsApiList: [
+                // 所有要调用的 API 都要加到这个列表中
+                "checkJsApi",
+
+                "onMenuShareTimeline",
+
+                "onMenuShareAppMessage",
+
+                "onMenuShareQQ",
+
+                "onMenuShareWeibo",
+
+                "hideMenuItems",
+
+                "showMenuItems",
+
+                "hideAllNonBaseMenuItem",
+
+                "showAllNonBaseMenuItem",
+
+                "translateVoice",
+
+                "startRecord",
+
+                "stopRecord",
+
+                "onRecordEnd",
+
+                "playVoice",
+
+                "pauseVoice",
+
+                "stopVoice",
+
+                "uploadVoice",
+
+                "downloadVoice",
+
+                "chooseImage",
+
+                "previewImage",
+
+                "uploadImage",
+
+                "downloadImage",
+
+                "getNetworkType",
+
+                "openLocation",
+
+                "getLocation",
+
+                "hideOptionMenu",
+
+                "showOptionMenu",
+
+                "closeWindow",
+
+                "scanQRCode",
+
+                "chooseWXPay",
+
+                "openProductSpecificView",
+
+                "addCard",
+
+                "chooseCard",
+
+                "openCard"
+              ]
+            });
+            _this.wx.error(function(res) {
+              alert("出错了：" + res.errMsg); //这个地方的好处就是wx.config配置错误，会弹出窗口哪里错误，然后根据微信文档查询即可。
+            });
+            _this.wx.ready(function() {
+              _this.wx.checkJsApi({
+                jsApiList: ["scanQRCode"],
+                success: function(res) {}
+              });
+            });
+            //点击按钮扫描二维码
+            _this.wx.scanQRCode({
+              needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+              scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+              success: function(res) {
+                localStorage.setItem("erCode", res.ercode);
+                _this
+                  .$fetch(Resource.getboxtypeinfos, {
+                    cabinetId: localStorage.getItem("erCode")
+                  })
+                  .then(result => {
+                    _this.boxList = result;
+                  });
+                var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+              }
+            });
+          }
+        });
+      } else {
+        this.$fetch(Resource.getboxtypeinfos, {
+          cabinetId: localStorage.getItem("erCode")
+        }).then(res => {
+          this.boxList = res;
+        });
+      }
     },
     toLogo() {
       console.log(Object.keys(this.boxInfo).length);
@@ -126,29 +244,29 @@ export default {
       });
     },
     openBox(index, item) {
-      console.log(item)
+      console.log(item);
       this.show = true;
       this.$fetch(Resource.couriopenbox, {
         courierId: "2486c4c5-b224-4a3e-b987-2f2578e03643",
-        openid: 'oyXLt0_bqywZK5ifUNEVaVnVPokU',
-        cabinetId: 1012,
-        boxtype: item.boxtype=='大格'?4:item.boxtype=='中格'?3:2,
-        boxfee: item.boxfee?item.boxfee.substr(1):''
+        openid: getCookie("openid"),
+        cabinetId: localStorage.getItem("erCode"),
+        boxtype: item.boxtype == "大格" ? 4 : item.boxtype == "中格" ? 3 : 2,
+        boxfee: item.boxfee ? item.boxfee.substr(1) : ""
       })
         .then(res => {
           setTimeout(() => {
             this.show = false;
-          if (res.status) {
-            this.$router.push({
-              path: "/expressSend",
-              query: {
-                boxInfo: JSON.stringify(this.boxInfo),
-                boxNo: res.boxNo
-              }
-            });
-          } else {
-            tooltipbox.show(res.msg);
-          }
+            if (res.status) {
+              this.$router.push({
+                path: "/expressSend",
+                query: {
+                  boxInfo: JSON.stringify(this.boxInfo),
+                  boxNo: res.boxNo
+                }
+              });
+            } else {
+              tooltipbox.show(res.msg);
+            }
           }, 1000);
           this.current = index;
           this.boxInfo = item;

@@ -1,8 +1,10 @@
 const API_HOST = 'http://gl.luoyangjinmei.com/webapi/ApiTest.ashx';
+const API_WX = 'http://wx.luoyangjinmei.com/getWxinter2.ashx';
 
 
 
 export const Resource = {
+    getWx: `${API_WX}`,//微信授权
     getcheckcode: `${API_HOST}?method=getcheckcode`,//登陆接口
     CourierDind: `${API_HOST}?method=CourierDind`,//绑定微信信息
     CourierLogin: `${API_HOST}?method=CourierLogin`,//微信用户登陆
@@ -22,4 +24,6 @@ export const Resource = {
     getexpcompany: `${API_HOST}?method=getexpcompany`,//返回快递公司
     setcourierexpname: `${API_HOST}?method=setcourierexpname`,//设置快递员和公司
     getdeliverylistpage: `${API_HOST}?method=getdeliverylistpage`,//设置快递员和公司
+    getpayloginfo: `${API_HOST}?method=getpayloginfo`,//19.快递员充值消费记录
+    getpayloginfoforuser: `${API_HOST}?method=getpayloginfoforuser`,//20.普通用户消费记录
   }

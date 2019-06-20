@@ -13,6 +13,7 @@
     "axios": "^0.18.1",
     "garen-loadmore": "^0.1.0",
     "sass-loader": "^7.1.0",
+    "v-wechat-auth": "^1.0.0",
     "vue": "^2.5.2",
     "vue-element-loading": "^1.1.1",
     "vue-router": "^3.0.6",

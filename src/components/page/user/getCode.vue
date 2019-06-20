@@ -74,7 +74,7 @@ export default {
         datas += $(this).attr("data");
       });
       this.$fetch(Resource.pickupsuccess, {
-        cabinetId: 1012,
+        cabinetId: localStorage.getItem('erCode'),
         pickcode: datas
       })
         .then(res => {

@@ -84,16 +84,147 @@ export default {
         tooltipbox.show("验证码已发送");
         let interval = window.setInterval(function() {
           _this.time--;
-          if (_this.idty != "user") {
+        }, 1000);
+        if (_this.idty != "user") {
+          if (!localStorage.getItem("erCode")) {
+            $.ajax({
+              type: "GET",
+              url: "http://wx.luoyangjinmei.com/getWxinter1.ashx",
+              //  url: "http://vue2.jianku.com.cn/000.php",
+              // data: {username:$("#username").val(), content:$("#content").val()},
+              dataType: "json",
+              data: { url: location.href.split("#")[0] },
+              success: function(data) {
+                console.log(data);
+                _this.wx.config({
+                  debug: false,
+                  appId: "wxd093959d6ee082a9",
+                  timestamp: data.timestamp,
+                  nonceStr: data.noncestr,
+                  signature: data.signature,
+                  jsApiList: [
+                    // 所有要调用的 API 都要加到这个列表中
+                    "checkJsApi",
+
+                    "onMenuShareTimeline",
+
+                    "onMenuShareAppMessage",
+
+                    "onMenuShareQQ",
+
+                    "onMenuShareWeibo",
+
+                    "hideMenuItems",
+
+                    "showMenuItems",
+
+                    "hideAllNonBaseMenuItem",
+
+                    "showAllNonBaseMenuItem",
+
+                    "translateVoice",
+
+                    "startRecord",
+
+                    "stopRecord",
+
+                    "onRecordEnd",
+
+                    "playVoice",
+
+                    "pauseVoice",
+
+                    "stopVoice",
+
+                    "uploadVoice",
+
+                    "downloadVoice",
+
+                    "chooseImage",
+
+                    "previewImage",
+
+                    "uploadImage",
+
+                    "downloadImage",
+
+                    "getNetworkType",
+
+                    "openLocation",
+
+                    "getLocation",
+
+                    "hideOptionMenu",
+
+                    "showOptionMenu",
+
+                    "closeWindow",
+
+                    "scanQRCode",
+
+                    "chooseWXPay",
+
+                    "openProductSpecificView",
+
+                    "addCard",
+
+                    "chooseCard",
+
+                    "openCard"
+                  ]
+                });
+                _this.wx.error(function(res) {
+                  alert("出错了：" + res.errMsg); //这个地方的好处就是wx.config配置错误，会弹出窗口哪里错误，然后根据微信文档查询即可。
+                });
+                _this.wx.ready(function() {
+                  _this.wx.checkJsApi({
+                    jsApiList: ["scanQRCode"],
+                    success: function(res) {}
+                  });
+                });
+                //点击按钮扫描二维码
+                _this.wx.scanQRCode({
+                  needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+                  scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+                  success: function(res) {
+                    localStorage.setItem("erCode", res.ercode);
+                    _this
+                      .$fetch(Resource.getcheckcode, {
+                        openid: "oyXLt0_bqywZK5ifUNEVaVnVPokU",
+                        cabinetId: localStorage.getItem("erCode"),
+                        phoneNo: _this.phone
+                      })
+                      .then(res => {
+                        if (res.status || _this.time <= 0) {
+                          tooltipbox.show("验证码已发送注意查收");
+                          clearInterval(interval);
+                        } else {
+                          tooltipbox.show(res.msg);
+                        }
+                        _this.sendMsgDisabled = false;
+                        _this.time = 60;
+                      })
+                      .catch(err => {
+                        clearInterval(interval);
+                        tooltipbox.show("获取验证码失败");
+                        _this.sendMsgDisabled = false;
+                        _this.time = 60;
+                      });
+                    var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+                  }
+                });
+              }
+            });
+          } else {
             _this
               .$fetch(Resource.getcheckcode, {
                 openid: "oyXLt0_bqywZK5ifUNEVaVnVPokU",
-                cabinetId: 1012,
+                cabinetId: localStorage.getItem("erCode"),
                 phoneNo: _this.phone
               })
               .then(res => {
-                tooltipbox.show(res.msg);
                 if (res.status || _this.time <= 0) {
+                  tooltipbox.show("验证码已发送注意查收");
                   clearInterval(interval);
                 } else {
                   tooltipbox.show(res.msg);
@@ -107,50 +238,61 @@ export default {
                 _this.sendMsgDisabled = false;
                 _this.time = 60;
               });
-          } else {
-            _this
-              .$fetch(Resource.isexistphone, {
-                phoneNo: _this.phone
-              })
-              .then(res => {
-                clearInterval(interval);
-                _this.sendMsgDisabled = false;
-                _this.time = 60;
-                tooltipbox.show(res.msg);
-              }).catch(err=>{
-                clearInterval(interval);
-              });
           }
-        }, 1000);
+        } else {
+          _this
+            .$fetch(Resource.isexistphone, {
+              phoneNo: _this.phone
+            })
+            .then(res => {
+              clearInterval(interval);
+              _this.sendMsgDisabled = false;
+              _this.time = 60;
+              tooltipbox.show(res.msg);
+            })
+            .catch(err => {
+              clearInterval(interval);
+            });
+        }
       }
     },
     register() {
-      if (!this.phone||!(/^1[34578]\d{9}$/.test(this.phone))||!this.phone||!/^\d{6}$/.test(this.VerificationCode)) {
-              tooltipbox.show('请输入完整手机号或验证码');
+      if (
+        !this.phone ||
+        !/^1[34578]\d{9}$/.test(this.phone) ||
+        !this.phone ||
+        !/^\d{4}$/.test(this.VerificationCode)
+      ) {
+        tooltipbox.show("请输入完整手机号或验证码");
       } else {
-      if (this.idty != "user") {
-        this.$fetch(Resource.CourierDind, {
-          openid: "oyXLt0_bqywZK5ifUNEVaVnVPokU",
-          cabinetId: 1012,
-          phoneNo: 18625998512,
-          checkCode: 2976
-        }).then(res => {
-          this.$router.push({
-            path: "/index"
+        if (this.idty != "user") {
+          this.$fetch(Resource.CourierDind, {
+            openid: "oyXLt0_bqywZK5ifUNEVaVnVPokU",
+            cabinetId: localStorage.getItem("erCode"),
+            phoneNo: 18625998512,
+            checkCode: this.VerificationCode
+          }).then(res => {
+            tooltipbox.show(res.msg);
+            if (res.status == "True") {
+              setTimeout(() => {
+                this.$router.push({
+                  path: "/index"
+                });
+              }, 1000);
+            }
           });
-        });
-      } else {
-        this.$fetch(Resource.userregist, {
-          openid: "oyXLt0_bqywZK5ifUNEVaVnVPokU",
-          cabinetId: 1012,
-          phoneNo: this.phone,
-          checkCode: 2976
-        }).then(res => {
-          this.$router.push({
-            path: "/index"
+        } else {
+          this.$fetch(Resource.userregist, {
+            openid: "oyXLt0_bqywZK5ifUNEVaVnVPokU",
+            cabinetId: localStorage.getItem("erCode"),
+            phoneNo: this.phone,
+            checkCode: this.VerificationCode
+          }).then(res => {
+            this.$router.push({
+              path: "/index"
+            });
           });
-        });
-      }
+        }
       }
     }
   }

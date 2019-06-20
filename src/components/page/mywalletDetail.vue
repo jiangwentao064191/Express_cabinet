@@ -39,7 +39,6 @@
         <div class="mp_listBoxb1">2019-05-24 15:30:29</div>
         <div class="mp_listBoxb2">余额支付</div>
       </div>
-      
     </div>
     <div class="mp_listBox">
       <div class="mp_listBoxt">
